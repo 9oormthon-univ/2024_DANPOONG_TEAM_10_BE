@@ -1,12 +1,22 @@
 from flask import Flask
-
-app = Flask(__name__)
+from flask_graphql import GraphQLView
+from config import app, db
+from schema import schema
 
 @app.route('/')
-def hello_world():
-    return 'Hello World!'
+def hello():
+    return "Hello, World!"
 
+app.add_url_rule(
+    '/graphql',
+    view_func=GraphQLView.as_view(
+        'graphql',
+        schema=schema,
+        graphiql=True  # for having the GraphiQL interface
+    )
+)
 
 if __name__ == '__main__':
-    app.run()
-    
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
