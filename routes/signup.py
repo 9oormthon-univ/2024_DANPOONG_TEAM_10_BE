@@ -49,7 +49,8 @@ class SignupUser(Resource):
         
             oauth = Oauth()
             user = oauth.userinfo(access_token)
-            user_info = User.query.filter(User.kakao_id == user["id"]).first()
+            social_kakao_id=str(user["id"])
+            user_info = User.query.filter(User.kakao_id == social_kakao_id).first()
             
             if not user_info:
                 return {
