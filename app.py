@@ -6,10 +6,12 @@ from .routes.signup import signup
 from .oauth import kakao
 from .db_config import db
 
-load_dotenv()  # .env 파일 로드
+# 가장 먼저 환경변수 로드
+load_dotenv()
+
 
 app = Flask(__name__)
-port = os.getenv('FLASK_RUN_PORT', 5001)  # 기본값 5000
+port = int(os.getenv('FLASK_RUN_PORT', '5001'))
 
 # #id:admin pw:admin
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:admin@localhost/passionpay_db'
@@ -39,7 +41,6 @@ api = Api(
 
 api.add_namespace(kakao, path='/oauth/kakao')
 api.add_namespace(signup, path='/signup')
-
 
 @app.route('/')
 def index():

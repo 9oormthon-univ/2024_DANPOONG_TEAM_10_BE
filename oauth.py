@@ -2,7 +2,7 @@ from flask import request, redirect, session
 from flask_restx import Namespace, Resource, fields
 from .key.kakao_client import CLIENT_ID, REDIRECT_URI, SIGNOUT_REDIRECT_URI
 from .kakao_controller import Oauth
-from .dto.member_model import Member
+from .model.user_model import User
 from .db_config import db
 
 kakao = Namespace('oauth/kakao', description='카카오 OAuth 인증 관련 API')
@@ -42,16 +42,16 @@ class KakaoCallback(Resource):
                     "result": "fail"
                 }, 404
 
-            member = oauth.userinfo("Bearer " + auth_info['access_token'])
-            member_info = Member.query.filter(Member.kakao_id == member["id"]).first()
-            if member_info is None:
-                member_info = Member(member["id"])
-                db.session.add(member_info)
+            user = oauth.userinfo(auth_info['access_token'])
+            user_info = User.query.filter(User.kakao_id == user["id"]).first()
+            if user_info is None:
+                user_info = User(user["id"])
+                db.session.add(user_info)
                 db.session.commit()
                 
                 return {
                     "status": 200,
-                    "message": "회원가입이 완료되었습니다.",
+                    "message": "회원가입이 완료. 추가 정보 입력 필요",
                     "result": "success",
                     "access_token": auth_info['access_token']
                 }, 200
@@ -66,7 +66,7 @@ class KakaoCallback(Resource):
         except Exception as e:
             return {
                 "status": 500,
-                "message": f"서버 오류가 발생했습니다: {str(e)}",
+                "message": f"서버 오류 발생: {str(e)}",
                 "result": "error"
             }, 500
 
