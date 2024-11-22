@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>프로필 업데이트 테스트</title>
+</head>
+
+<body>
+    <h2>프로필 업데이트 테스트</h2>
+
+    <!-- 로그인 버튼 -->
+    <button onclick="loginWithKakao()">카카오 로그인</button>
+
+    <!-- 프로필 업데이트 폼 -->
+    <div id="updateForm" style="display:none;">
+        <h3>프로필 업데이트</h3>
+        <input type="text" id="nickname" placeholder="닉네임">
+        <input type="text" id="birthDate" placeholder="생년월일">
+        <select id="gender">
+            <option value="">성별 선택</option>
+            <option value="male">남성</option>
+            <option value="female">여성</option>
+        </select>
+        <button onclick="updateProfile()">업데이트</button>
+    </div>
+
+    <!-- 결과 표시 영역 -->
+    <pre id="result"></pre>
+
+    <script>
+        let accessToken = null;
+
+        // URL에서 토큰 확인
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('access_token');
+        if (token) {
+            accessToken = token;
+            document.getElementById('updateForm').style.display = 'block';
+        }
+
+        function loginWithKakao() {
+            window.location.href = '/oauth/kakao';
+        }
+
+        async function updateProfile() {
+            const nickname = document.getElementById('nickname').value;
+            const birthDate = document.getElementById('birthDate').value;
+            const gender = document.getElementById('gender').value;
+
+            // GraphQL mutation 실행
+            const response = await fetch('/graphql', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({
+                    query: `
+                        mutation {
+                            updateProfile(
+                                nickname: "${nickname}"
+                                birthDate: "${birthDate}"
+                                gender: "${gender}"
+                            ) {
+                                user {
+                                    kakaoId
+                                    nickname
+                                    birthDate
+                                    gender
+                                }
+                                message
+                            }
+                        }
+                    `
+                })
+            });
+
+            const data = await response.json();
+            document.getElementById('result').textContent =
+                JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+
+</html>

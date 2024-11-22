@@ -49,6 +49,8 @@ class KakaoCallback(Resource):
                 db.session.add(user_info)
                 db.session.commit()
                 
+                #테스트를 위한 리다이렉트
+                return redirect(f'/test-profile?access_token={auth_info["access_token"]}')
                 return {
                     "status": 200,
                     "message": "회원가입이 완료. 추가 정보 입력 필요",
@@ -56,6 +58,8 @@ class KakaoCallback(Resource):
                     "access_token": auth_info['access_token']
                 }, 200
             else:
+                #테스트를 위한 리다이렉트
+                return redirect(f'/test-profile?access_token={auth_info["access_token"]}')
                 return {
                     "status": 200,
                     "message": "로그인에 성공하였습니다.",
