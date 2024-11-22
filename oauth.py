@@ -1,9 +1,12 @@
 from flask import request, redirect, session
 from flask_restx import Namespace, Resource, fields
-from .key.kakao_client import CLIENT_ID, REDIRECT_URI, SIGNOUT_REDIRECT_URI
-from .kakao_controller import Oauth
-from .model.user_model import User
-from .db_config import db
+from dotenv import load_dotenv
+from kakao_controller import Oauth
+from model.user_model import User
+from db_config import db
+import os
+
+load_dotenv()
 
 kakao = Namespace('oauth/kakao', description='카카오 OAuth 인증 관련 API')
 
@@ -20,7 +23,7 @@ class KakaoSignIn(Resource):
     @kakao.doc('카카오 로그인')
     def get(self):
         """카카오 로그인 페이지로 리다이렉트"""
-        kakao_oauth_url = f"https://kauth.kakao.com/oauth/authorize?client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&response_type=code"
+        kakao_oauth_url = f"https://kauth.kakao.com/oauth/authorize?client_id={os.environ.get('CLIENT_ID')}&redirect_uri={os.environ.get('REDIRECT_URI')}&response_type=code"
         return redirect(kakao_oauth_url)
 
 @kakao.route('/callback')
@@ -82,7 +85,7 @@ class KakaoSignOut(Resource):
     @kakao.response(404, '실패', auth_response)
     def get(self):
         """카카오 로그아웃"""
-        kakao_oauth_url = f"https://kauth.kakao.com/oauth/logout?client_id={CLIENT_ID}&logout_redirect_uri={SIGNOUT_REDIRECT_URI}"
+        kakao_oauth_url = f"https://kauth.kakao.com/oauth/logout?client_id={os.environ.get('CLIENT_ID')}&logout_redirect_uri={os.environ.get('SIGNOUT_REDIRECT_URI')}"
 
         if session.get('email'):
             session.clear()

@@ -1,6 +1,9 @@
 import requests
-from .key.kakao_client import CLIENT_ID, CLIENT_SECRET, REDIRECT_URI
+import os
+from dotenv import load_dotenv
 
+# load .env
+load_dotenv()
 
 class Oauth:
 
@@ -18,9 +21,9 @@ class Oauth:
             headers=self.default_header,
             data={
                 "grant_type": "authorization_code",
-                "client_id": CLIENT_ID,
-                "client_secret": CLIENT_SECRET,
-                "redirect_uri": REDIRECT_URI,
+                "client_id": os.environ.get('CLIENT_ID'),
+                "client_secret": os.environ.get('CLIENT_SECRET'),
+                "redirect_uri": os.environ.get('REDIRECT_URI'),
                 "code": code,
             },
         ).json()
