@@ -72,6 +72,16 @@ class UpdateProfile(graphene.Mutation):
                 message="닉네임은 1-10자 사이여야 합니다.",
                 user=None
             )
+        existing_user=User.query.filter(
+            User.nickname==nickname,
+            User.kakao_id!=social_kakao_id
+        ).first()
+        if(existing_user):
+            return UpdateProfile(
+                success=False,
+                message="이미 사용 중인 닉네임입니다.",
+                user=None
+            )
             
             # 생년월일 유효성 검사
         try:
