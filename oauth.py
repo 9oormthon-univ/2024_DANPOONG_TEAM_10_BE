@@ -43,9 +43,10 @@ class KakaoCallback(Resource):
                 }, 404
 
             user = oauth.userinfo(auth_info['access_token'])
-            user_info = User.query.filter(User.kakao_id == user["id"]).first()
+            social_kakao_id=str(user["id"])
+            user_info = User.query.filter(User.kakao_id == social_kakao_id).first()
             if user_info is None:
-                user_info = User(user["id"])
+                user_info = User(social_kakao_id)
                 db.session.add(user_info)
                 db.session.commit()
                 

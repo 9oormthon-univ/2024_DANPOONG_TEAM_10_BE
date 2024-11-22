@@ -1,61 +1,80 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>프로필 및 약관 동의 테스트</title>
+    <style>
+      .section {
+        margin: 20px 0;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
 
-<head>
-    <title>프로필 업데이트 테스트</title>
-</head>
+  <body>
+    <h2>프로필 및 약관 동의 테스트</h2>
 
-<body>
-    <h2>프로필 업데이트 테스트</h2>
-
-    <!-- 로그인 버튼 -->
     <button onclick="loginWithKakao()">카카오 로그인</button>
 
-    <!-- 프로필 업데이트 폼 -->
-    <div id="updateForm" style="display:none;">
+    <div id="testForms" style="display: none">
+      <!-- 프로필 업데이트 폼 -->
+      <div class="section">
         <h3>프로필 업데이트</h3>
-        <input type="text" id="nickname" placeholder="닉네임">
-        <input type="text" id="birthDate" placeholder="생년월일">
+        <input type="text" id="nickname" placeholder="닉네임" />
+        <input type="text" id="birthDate" placeholder="생년월일" />
         <select id="gender">
-            <option value="">성별 선택</option>
-            <option value="male">남성</option>
-            <option value="female">여성</option>
+          <option value="">성별 선택</option>
+          <option value="male">남성</option>
+          <option value="female">여성</option>
         </select>
         <button onclick="updateProfile()">업데이트</button>
+      </div>
+
+      <!-- 약관 목록 및 동의 섹션 -->
+      <div class="section">
+        <h3>약관 목록</h3>
+        <div id="termsList">
+          <!-- 약관 목록이 여기에 동적으로 추가됩니다 -->
+        </div>
+      </div>
+
+      <!-- 결과 표시 영역 -->
+      <div class="section">
+        <h3>실행 결과</h3>
+        <pre id="result"></pre>
+      </div>
     </div>
 
-    <!-- 결과 표시 영역 -->
-    <pre id="result"></pre>
-
     <script>
-        let accessToken = null;
+      let accessToken = null;
 
-        // URL에서 토큰 확인
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('access_token');
-        if (token) {
-            accessToken = token;
-            document.getElementById('updateForm').style.display = 'block';
-        }
+      // URL에서 토큰 확인
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get("access_token");
+      if (token) {
+        accessToken = token;
+        document.getElementById("testForms").style.display = "block";
+      }
 
-        function loginWithKakao() {
-            window.location.href = '/oauth/kakao';
-        }
+      function loginWithKakao() {
+        window.location.href = "/oauth/kakao";
+      }
 
-        async function updateProfile() {
-            const nickname = document.getElementById('nickname').value;
-            const birthDate = document.getElementById('birthDate').value;
-            const gender = document.getElementById('gender').value;
+      async function updateProfile() {
+        const nickname = document.getElementById("nickname").value;
+        const birthDate = document.getElementById("birthDate").value;
+        const gender = document.getElementById("gender").value;
 
-            // GraphQL mutation 실행
-            const response = await fetch('/graphql', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
-                },
-                body: JSON.stringify({
-                    query: `
+        // GraphQL mutation 실행
+        const response = await fetch("/graphql", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            query: `
                         mutation {
                             updateProfile(
                                 nickname: "${nickname}"
@@ -71,15 +90,138 @@
                                 message
                             }
                         }
-                    `
-                })
-            });
+                    `,
+          }),
+        });
 
-            const data = await response.json();
-            document.getElementById('result').textContent =
-                JSON.stringify(data, null, 2);
+        const data = await response.json();
+        document.getElementById("result").textContent = JSON.stringify(
+          data,
+          null,
+          2
+        );
+      }
+
+      // 약관 동의 처리 함수
+      async function submitTermsAgreement() {
+        // 체크된 약관 ID들 수집
+        const checkedTerms = Array.from(
+          document.querySelectorAll('input[name="terms"]:checked')
+        ).map((checkbox) => parseInt(checkbox.value));
+
+        try {
+          const response = await fetch("/graphql", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({
+              query: `
+                        mutation {
+                            agreeToTerms(termsIds: [${checkedTerms}]) {
+                                success
+                                message
+                                userAgrees {
+                                    id
+                                    termsId
+                                }
+                            }
+                        }
+                    `,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.data.agreeToTerms.success) {
+            alert(data.data.agreeToTerms.message);
+            // 회원가입 완료 또는 다음 단계로 이동
+            window.location.href = "/welcome"; // 또는 다른 페이지로 리다이렉트
+          } else {
+            alert(data.data.agreeToTerms.message);
+          }
+        } catch (error) {
+          alert("약관 동의 처리 중 오류가 발생했습니다.");
+          console.error(error);
         }
-    </script>
-</body>
+      }
 
+      // 약관 전체 동의 처리
+      function handleAllTermsAgreement(checked) {
+        const termCheckboxes = document.querySelectorAll('input[name="terms"]');
+        termCheckboxes.forEach((checkbox) => {
+          checkbox.checked = checked;
+        });
+      }
+
+      // 약관 목록 표시
+      async function displayTerms() {
+        try {
+          const response = await fetch("/graphql", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({
+              query: `
+                        query {
+                            terms {
+                                id
+                                title
+                                link
+                                optional
+                            }
+                        }
+                    `,
+            }),
+          });
+
+          const data = await response.json();
+          const termsListDiv = document.getElementById("termsList");
+
+          // 전체 동의 체크박스
+          const allTermsHtml = `
+                <div class="terms-all">
+                    <input type="checkbox" id="allTerms" onchange="handleAllTermsAgreement(this.checked)">
+                    <label for="allTerms">약관 전체 동의</label>
+                </div>
+            `;
+
+          // 개별 약관 목록
+          const termsHtml = data.data.terms
+            .map(
+              (term) => `
+                <div class="terms-item">
+                    <input type="checkbox" name="terms" value="${
+                      term.id
+                    }" id="term_${term.id}">
+                    <label for="term_${term.id}">
+                        ${term.optional ? "[선택]" : "[필수]"} ${term.title}
+                    </label>
+                    <a href="${term.link}" target="_blank">자세히 보기</a>
+                </div>
+            `
+            )
+            .join("");
+
+          termsListDiv.innerHTML = allTermsHtml + termsHtml;
+
+          // 완료 버튼
+          const submitButton = document.createElement("button");
+          submitButton.textContent = "완료";
+          submitButton.onclick = submitTermsAgreement;
+          termsListDiv.appendChild(submitButton);
+        } catch (error) {
+          console.error("약관 목록 로딩 중 오류 발생:", error);
+        }
+      }
+
+      // 페이지 로드 시 약관 목록 표시
+      if (accessToken) {
+        displayTerms();
+      }
+    </script>
+  </body>
 </html>
