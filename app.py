@@ -15,11 +15,6 @@ app = Flask(__name__)
 from schema import schema
 from db_config import db
 from oauth import kakao
-from model.user_model import User  # 필요한 모델들을 여기서 임포트
-from model.terms_model import Terms
-from model.mapping.user_agree_model import UserAgree
-from model.mapping.review_model import Review
-from model.festival_model import Festival
 
 # 가장 먼저 환경변수 로드
 load_dotenv()
@@ -34,7 +29,7 @@ api = Api(app)
 api.add_namespace(kakao, path='/oauth/kakao')
 
 # #id:admin pw:admin
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_ADDRESS')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('LOCAL_DB_ADDRESS')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)

@@ -1,7 +1,7 @@
 import graphene
 from flask import request
 from type.user_festival_like_type import UserFestivalLikeType
-from model.mapping.user_festival_like import UserFestivalLike
+from model.mapping.user_festival_like_model import UserFestivalLike
 from utils.auth import login_required
 from model.user_model import User
 

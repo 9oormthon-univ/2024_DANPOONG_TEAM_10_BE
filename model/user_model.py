@@ -11,6 +11,8 @@ class User(BaseTable):
     birth_date = db.Column(db.Date, nullable=True)
     kakao_id = db.Column(db.String(10),unique=True)
     gender=db.Column(db.String(10))
+    warning_count=db.Column(db.Integer)
+    pic_link=db.Column(db.Text)
 
     def __init__(self, kakao_id):
         self.kakao_id=kakao_id
