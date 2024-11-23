@@ -13,13 +13,14 @@ app = Flask(__name__)
 from schema import schema
 from db_config import db
 from oauth import kakao
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
+from model.user_model import User  # 필요한 모델들을 여기서 임포트
+from model.terms_model import Terms
+from model.mapping.user_agree_model import UserAgree
+from model.mapping.review_model import Review
+from model.festival_model import Festival
 
 # 가장 먼저 환경변수 로드
 load_dotenv()
-
-
 
 CORS(app)  # CORS 활성화
 port = int(os.getenv('FLASK_RUN_PORT', '5001'))
