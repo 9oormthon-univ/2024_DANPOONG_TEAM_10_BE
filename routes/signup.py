@@ -1,9 +1,9 @@
 from flask import Blueprint, request, redirect, session, jsonify
-from ..utils.auth import login_required
 from flask_restx import Namespace, Resource, fields
-from ..kakao_controller import Oauth
-from ..model.user_model import User
-from ..db_config import db
+from utils.auth import login_required
+from kakao_controller import Oauth
+from model.user_model import User
+from db_config import db
 
 # Blueprint 대신 Namespace 사용
 signup = Namespace('signup', description='회원가입 관련 API')

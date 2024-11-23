@@ -1,4 +1,4 @@
-from .base_model import BaseTable
+from model.base_model import BaseTable
 from db_config import db
 
 

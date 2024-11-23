@@ -1,5 +1,5 @@
-from .base_model import BaseTable
-from ..db_config import db
+from model.base_model import BaseTable
+from db_config import db
 
 
 # db = SQLAlchemy()
