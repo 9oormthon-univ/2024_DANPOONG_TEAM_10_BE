@@ -1,12 +1,13 @@
 import graphene
 from graphene_sqlalchemy import SQLAlchemyObjectType
-from .model.user_model import User
+from model.user_model import User
 from .model.terms_model import Terms
 from .model.mapping.user_agree_model import UserAgree
 from .db_config import db
-from.utils.auth import login_required
+from .utils.auth import login_required
 from flask import request
 from datetime import datetime
+
 #DB 테이블 정의
 class UserType(SQLAlchemyObjectType):
     class Meta:

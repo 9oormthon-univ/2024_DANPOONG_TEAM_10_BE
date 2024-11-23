@@ -1,6 +1,6 @@
 from functools import wraps
 from flask import request
-from ..kakao_controller import Oauth
+from kakao_controller import Oauth
 
 def login_required(f):
     @wraps(f)
@@ -32,4 +32,4 @@ def login_required(f):
                 "result": "fail"
             }, 401
             
-    return decorated_function 
+    return decorated_function

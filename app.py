@@ -3,14 +3,13 @@ from flask_graphql import GraphQLView
 from dotenv import load_dotenv
 from flask_restx import Api
 from flask_cors import CORS
-from .schema import schema  
-from .db_config import db
-from .oauth import kakao
+from schema import schema
+from db_config import db
+from oauth import kakao
 import os
 
 # 가장 먼저 환경변수 로드
 load_dotenv()
-
 
 app = Flask(__name__)
 CORS(app)  # CORS 활성화
@@ -21,9 +20,8 @@ api = Api(app)
 api.add_namespace(kakao, path='/oauth/kakao')
 
 # #id:admin pw:admin
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:admin@localhost/passionpay_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_ADDRESS')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 
 db.init_app(app)
 with app.app_context():
