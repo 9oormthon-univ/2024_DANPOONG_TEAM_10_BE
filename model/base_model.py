@@ -1,5 +1,5 @@
 import datetime
-from ..db_config import db
+from db_config import db
 
 
 class BaseTable(db.Model):

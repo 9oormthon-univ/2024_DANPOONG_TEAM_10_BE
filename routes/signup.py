@@ -1,18 +1,18 @@
 from flask import Blueprint, request, redirect, session, jsonify
-from ..utils.auth import login_required
 from flask_restx import Namespace, Resource, fields
-from ..kakao_controller import Oauth
-from ..dto.member_model import Member
-from ..db_config import db
+from utils.auth import login_required
+from kakao_controller import Oauth
+from model.user_model import User
+from db_config import db
 
 # Blueprint 대신 Namespace 사용
 signup = Namespace('signup', description='회원가입 관련 API')
 
 # 요청 모델 정의
 signup_model = signup.model('Signup', {
-    'nickname': fields.String(required=True, description='사용자 이름'),
-    'birth_date': fields.String(required=True, description='생년월일 (YYYY-MM-DD)'),
-    'gender': fields.String(required=True, description='성별 (M/F)')
+    'nickname': fields.String(required=True, description='사용자 이름',example="김철수"),
+    'birth_date': fields.String(required=True, description='생년월일 (YYYY-MM-DD)',example="2001-03-24"),
+    'gender': fields.String(required=True, description='성별 (male/female/none)',example="male")
 })
 
 # 응답 모델 정의
@@ -48,19 +48,20 @@ class SignupUser(Resource):
                 }, 400
         
             oauth = Oauth()
-            member = oauth.userinfo(access_token)
-            member_info = Member.query.filter(Member.kakao_id == member["id"]).first()
+            user = oauth.userinfo(access_token)
+            social_kakao_id=str(user["id"])
+            user_info = User.query.filter(User.kakao_id == social_kakao_id).first()
             
-            if not member_info:
+            if not user_info:
                 return {
                     "status": 404,
                     "message": "사용자를 찾을 수 없습니다.",
                     "result": "fail"
                 }, 404
 
-            member_info.nickname = nickname
-            member_info.birth_date = birth_date
-            member_info.gender = gender
+            user_info.nickname = nickname
+            user_info.birth_date = birth_date
+            user_info.gender = gender
             
             db.session.commit()
 
