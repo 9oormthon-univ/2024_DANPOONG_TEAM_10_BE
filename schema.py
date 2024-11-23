@@ -4,6 +4,7 @@ from model.user_model import User
 from model.terms_model import Terms
 from model.mapping.user_agree_model import UserAgree
 from model.mapping.review_model import Review
+from model.festival_model import Festival
 from db_config import db
 from utils.auth import login_required
 from flask import request
@@ -22,6 +23,9 @@ class TermsType(SQLAlchemyObjectType):
 class ReviewType(SQLAlchemyObjectType):
     class Meta:
         model = Review
+class FestivalType(SQLAlchemyObjectType):
+    class Meta:
+        model = Festival
 
 class Query(graphene.ObjectType):
     users = graphene.List(UserType)
@@ -32,6 +36,8 @@ class Query(graphene.ObjectType):
     term = graphene.Field(TermsType, id=graphene.Int())
     reviews=graphene.List(ReviewType,festival_id=graphene.Int(),user_id=graphene.Int())
     review=graphene.Field(ReviewType,user_id=graphene.Int())
+    festivals = graphene.List(FestivalType)
+    festival = graphene.Field(FestivalType, id=graphene.Int())
     
     def resolve_users(self, info):
         return User.query.all()
@@ -54,6 +60,10 @@ class Query(graphene.ObjectType):
         if user_id is None:
             return None
         return Review.query.filter_by(user_id == user_id).first()
+    def resolve_festivals(self, info):
+        return Festival.query.all()
+    def resolve_festival(self, info, id):
+        return Festival.query.filter_by(id=id).first()
 
 class CreateUser(graphene.Mutation):
     class Arguments:
@@ -125,7 +135,7 @@ class UpdateProfile(graphene.Mutation):
         db.session.commit()
         return UpdateProfile(
             user=user,
-            message="프로필이 성공적으로 업데이트되었습니다"
+            message="��로필이 성공적으로 업데이트되었습니다"
         )
 class AgreeToTerms(graphene.Mutation):
     class Arguments:
@@ -289,6 +299,19 @@ class UpdateReview(graphene.Mutation):
                 success=False,
                 message=f"리뷰 수정 중 오류가 발생했습니다: {str(e)}"
             )
+class CreateFestival(graphene.Mutation):
+    class Arguments:
+        name = graphene.String(required=True)
+        created_at = graphene.String(required=True)
+        updated_at = graphene.String(required=True)
+
+    festival = graphene.Field(lambda: FestivalType)
+
+    def mutate(self, info, name, created_at, updated_at):
+        festival = Festival(name=name, created_at=created_at, updated_at=updated_at)
+        db.session.add(festival)
+        db.session.commit()
+        return CreateFestival(festival=festival)
                 
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
@@ -297,4 +320,6 @@ class Mutation(graphene.ObjectType):
     create_review = CreateReview.Field()
     update_review=UpdateReview.Field()
     delete_review=DeleteReview.Field()
+    create_festival = CreateFestival.Field()
+
 schema = graphene.Schema(query=Query, mutation=Mutation)
