@@ -21,7 +21,7 @@ class CreateGoods(graphene.Mutation):
             social_kakao_id = str(user_info["id"])
             user=User.query.filter(User.kakao_id == social_kakao_id).first()
             new_goods=Goods(user_id=user.id, festival_id=festival_id,body=body,score=score)
-            db.session.add(new_review)
+            db.session.add(new_goods)
             db.session.commit()
             return CreateGoods(
                 success=True,

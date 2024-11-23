@@ -88,5 +88,5 @@ class DeleteUserFestivalLike(graphene.Mutation):
                 message=f"축제 좋아요 삭제 중 오류가 발생했습니다.: {str(e)}"
             )
 class UserFestivalLikeMutations(graphene.ObjectType):
-    create_user_festival_like = CreateUserFestivalLike.Field()
-    delete_user_festival_like=DeleteUserFestivalLike.Field()
+    create_user_festival_like = CreateUserFestivalLike.Field(description="현재 사용자가 해당 축제에 대해 좋아요를 생성")
+    delete_user_festival_like=DeleteUserFestivalLike.Field(description="현재 사용자가 해당 축제에 대해 좋아요를 삭제")

@@ -3,6 +3,7 @@ from flask import Flask, render_template
 from flask_socketio import SocketIO, join_room, leave_room, send
 import os
 
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'secret!')
 socketio = SocketIO(app)

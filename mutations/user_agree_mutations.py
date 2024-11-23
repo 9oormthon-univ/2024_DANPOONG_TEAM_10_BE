@@ -57,4 +57,4 @@ class AgreeToTerms(graphene.Mutation):
                 message=f"약관 동의 처리 중 오류가 발생했습니다: {str(e)}"
             )
 class UserAgreeMutations(graphene.ObjectType):
-    agree_to_terms = AgreeToTerms.Field()
+    agree_to_terms = AgreeToTerms.Field(description="현재 사용자의 해당 Term에 대한 동의 정보를 추가합니다.")
