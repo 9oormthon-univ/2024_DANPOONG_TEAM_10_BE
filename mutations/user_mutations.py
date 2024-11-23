@@ -80,5 +80,5 @@ class UpdateUser(graphene.Mutation):
         )
 
 class UserMutations(graphene.ObjectType):
-    create_user = CreateUser.Field()
-    update_user = UpdateUser.Field()
+    create_user = CreateUser.Field(description="토큰을 통해 kakao_id 기반으로 유저를 생성합니다")
+    update_user = UpdateUser.Field(description="폼 기반으로 유저를 업데이트 합니다")

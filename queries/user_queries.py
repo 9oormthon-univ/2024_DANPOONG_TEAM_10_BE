@@ -4,7 +4,11 @@ from model.user_model import User
 
 class UserQueries(graphene.ObjectType):
     users = graphene.List(UserType)
-    user = graphene.Field(UserType, kakao_id=graphene.String())
+    #TODO: 추후 ID 기준으로 변경
+    user = graphene.Field(
+        UserType, 
+        kakao_id=graphene.String(),
+        description="kakao_id로 user 탐색")
 
     def resolve_users(self, info):
         return User.query.all()

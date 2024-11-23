@@ -3,7 +3,9 @@ from type.review_type import ReviewType
 from model.mapping.review_model import Review
 
 class ReviewQueries(graphene.ObjectType):
-    reviews=graphene.List(ReviewType,festival_id=graphene.Int(),user_id=graphene.Int())
+    reviews=graphene.List(ReviewType,
+                          festival_id=graphene.Int(),
+                          user_id=graphene.Int())
     review=graphene.Field(ReviewType,user_id=graphene.Int())
     
     def resolve_reviews(self, info,festival_id=None, user_id=None):
