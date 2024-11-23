@@ -43,7 +43,7 @@ with app.app_context():
 
 # SocketIO 설정
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'secret!')
-socketio = SocketIO(app)
+socketio = SocketIO(app, ping_timeout=1800, ping_interval=25)  # 30분(1800초) 타임아웃, 25초마다 ping
 
 @app.route('/')
 def index():
