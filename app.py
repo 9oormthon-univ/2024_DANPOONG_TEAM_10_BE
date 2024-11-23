@@ -1,10 +1,12 @@
-from flask import Flask,render_template
+from flask import Flask, render_template
 from flask_graphql import GraphQLView
 from dotenv import load_dotenv
 from flask_restx import Api
 from flask_cors import CORS
+from flask_socketio import SocketIO, join_room, leave_room, send
 import os
 import sys
+
 # 프로젝트 루트 경로
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(BASE_DIR)
@@ -32,12 +34,16 @@ api = Api(app)
 api.add_namespace(kakao, path='/oauth/kakao')
 
 # #id:admin pw:admin
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('LOCAL_DB_ADDRESS')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_ADDRESS')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 with app.app_context():
     db.create_all()
+
+# SocketIO 설정
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'secret!')
+socketio = SocketIO(app)
 
 @app.route('/')
 def index():
@@ -46,6 +52,11 @@ def index():
 @app.route('/test-profile')
 def test_profile():
     return render_template('test_profile.html')
+
+@app.route('/test-chat')
+def test_chat():
+    return render_template('chat.html')
+
 # GraphQL 뷰 추가
 app.add_url_rule(
     '/graphql',
@@ -56,5 +67,26 @@ app.add_url_rule(
     )
 )
 
+# WebSocket 이벤트 핸들러
+@socketio.on('join')
+def on_join(data):
+    username = data['username']
+    room = data['room']
+    join_room(room)
+    send(f'{username} has entered the room.', to=room)
+
+@socketio.on('leave')
+def on_leave(data):
+    username = data['username']
+    room = data['room']
+    leave_room(room)
+    send(f'{username} has left the room.', to=room)
+
+@socketio.on('message')
+def handle_message(data):
+    room = data['room']
+    send(data['message'], to=room)
+
 if __name__ == '__main__':
-    app.run(debug=True ,port=port)
+    socketio.run(app, host='0.0.0.0', debug=True, port=443)
+    # app.run(debug=True, port=port)
