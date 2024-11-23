@@ -1,6 +1,6 @@
 from functools import wraps
-from flask import request
-from kakao_controller import Oauth
+from flask import request, jsonify
+from ..kakao_controller import Oauth
 
 def login_required(f):
     @wraps(f)
@@ -13,14 +13,17 @@ def login_required(f):
                 "message": "로그인이 필요합니다.",
                 "result": "fail"
             }, 401
+            
         try:
             # Bearer 토큰 형식 검증
-            token = auth_header.replace('Bearer ', '') if auth_header.startswith('Bearer ') else auth_header
+            token_type, token = auth_header.split(' ')
+            if token_type != 'Bearer':
+                raise ValueError('Invalid token type')
                 
             # 카카오 API로 토큰 유효성 검증
             oauth = Oauth()
-            user_info = oauth.userinfo(token)
-            print(user_info)
+            user_info = oauth.userinfo(auth_header)
+            
             # 요청에 사용자 정보 추가
             request.user = user_info
             return f(*args, **kwargs)
@@ -32,4 +35,4 @@ def login_required(f):
                 "result": "fail"
             }, 401
             
-    return decorated_function
+    return decorated_function 

@@ -1,9 +1,6 @@
 import requests
-import os
-from dotenv import load_dotenv
+from .key.kakao_client import CLIENT_ID, CLIENT_SECRET, REDIRECT_URI
 
-# load .env
-load_dotenv()
 
 class Oauth:
 
@@ -21,9 +18,9 @@ class Oauth:
             headers=self.default_header,
             data={
                 "grant_type": "authorization_code",
-                "client_id": os.environ.get('CLIENT_ID'),
-                "client_secret": os.environ.get('CLIENT_SECRET'),
-                "redirect_uri": os.environ.get('REDIRECT_URI'),
+                "client_id": CLIENT_ID,
+                "client_secret": CLIENT_SECRET,
+                "redirect_uri": REDIRECT_URI,
                 "code": code,
             },
         ).json()
@@ -32,13 +29,11 @@ class Oauth:
         # bearer_token에 'Bearer' 접두어가 없는 경우 추가
         if not bearer_token.startswith('Bearer '):
             bearer_token = f"Bearer {bearer_token}"
-
-        print("사용되는 토큰:", bearer_token)  # 디버깅용
         return requests.post(
             url=self.api_server % "/v2/user/me",
             headers={
                 **self.default_header,
-                **{"Authorization": bearer_token }
+                **{"Authorization": bearer_token}
             },
             # "property_keys":'["kakao_account.profile_image_url"]'
             data={}

@@ -1,12 +1,9 @@
 from flask import request, redirect, session
 from flask_restx import Namespace, Resource, fields
-from dotenv import load_dotenv
-from kakao_controller import Oauth
-from model.user_model import User
-from db_config import db
-import os
-
-load_dotenv()
+from .key.kakao_client import CLIENT_ID, REDIRECT_URI, SIGNOUT_REDIRECT_URI
+from .kakao_controller import Oauth
+from .dto.member_model import Member
+from .db_config import db
 
 kakao = Namespace('oauth/kakao', description='카카오 OAuth 인증 관련 API')
 
@@ -23,7 +20,7 @@ class KakaoSignIn(Resource):
     @kakao.doc('카카오 로그인')
     def get(self):
         """카카오 로그인 페이지로 리다이렉트"""
-        kakao_oauth_url = f"https://kauth.kakao.com/oauth/authorize?client_id={os.environ.get('CLIENT_ID')}&redirect_uri={os.environ.get('REDIRECT_URI')}&response_type=code"
+        kakao_oauth_url = f"https://kauth.kakao.com/oauth/authorize?client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}&response_type=code"
         return redirect(kakao_oauth_url)
 
 @kakao.route('/callback')
@@ -45,25 +42,20 @@ class KakaoCallback(Resource):
                     "result": "fail"
                 }, 404
 
-            user = oauth.userinfo(auth_info['access_token'])
-            social_kakao_id=str(user["id"])
-            user_info = User.query.filter(User.kakao_id == social_kakao_id).first()
-            if user_info is None:
-                user_info = User(social_kakao_id)
-                db.session.add(user_info)
+            member = oauth.userinfo("Bearer " + auth_info['access_token'])
+            member_info = Member.query.filter(Member.kakao_id == member["id"]).first()
+            if member_info is None:
+                member_info = Member(member["id"])
+                db.session.add(member_info)
                 db.session.commit()
                 
-                #테스트를 위한 리다이렉트
-                return redirect(f'/test-profile?access_token={auth_info["access_token"]}')
                 return {
                     "status": 200,
-                    "message": "회원가입이 완료. 추가 정보 입력 필요",
+                    "message": "회원가입이 완료되었습니다.",
                     "result": "success",
                     "access_token": auth_info['access_token']
                 }, 200
             else:
-                #테스트를 위한 리다이렉트
-                return redirect(f'/test-profile?access_token={auth_info["access_token"]}')
                 return {
                     "status": 200,
                     "message": "로그인에 성공하였습니다.",
@@ -74,7 +66,7 @@ class KakaoCallback(Resource):
         except Exception as e:
             return {
                 "status": 500,
-                "message": f"서버 오류 발생: {str(e)}",
+                "message": f"서버 오류가 발생했습니다: {str(e)}",
                 "result": "error"
             }, 500
 
@@ -85,7 +77,7 @@ class KakaoSignOut(Resource):
     @kakao.response(404, '실패', auth_response)
     def get(self):
         """카카오 로그아웃"""
-        kakao_oauth_url = f"https://kauth.kakao.com/oauth/logout?client_id={os.environ.get('CLIENT_ID')}&logout_redirect_uri={os.environ.get('SIGNOUT_REDIRECT_URI')}"
+        kakao_oauth_url = f"https://kauth.kakao.com/oauth/logout?client_id={CLIENT_ID}&logout_redirect_uri={SIGNOUT_REDIRECT_URI}"
 
         if session.get('email'):
             session.clear()
