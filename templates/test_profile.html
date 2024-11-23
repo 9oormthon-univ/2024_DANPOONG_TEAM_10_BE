@@ -39,6 +39,71 @@
         </div>
       </div>
 
+      <!-- 리뷰 작성 섹션 -->
+      <div class="section">
+        <h3>축제 리뷰 작성</h3>
+        <input type="number" id="festivalId" placeholder="축제 ID" min="1" />
+        <textarea
+          id="reviewBody"
+          placeholder="리뷰 내용을 입력하세요"
+          rows="4"
+          style="width: 100%; margin: 10px 0"
+        ></textarea>
+        <div>
+          <label>평점:</label>
+          <select id="reviewScore">
+            <option value="1">1점</option>
+            <option value="2">2점</option>
+            <option value="3">3점</option>
+            <option value="4">4점</option>
+            <option value="5">5점</option>
+          </select>
+        </div>
+        <button onclick="submitReview()">리뷰 등록</button>
+      </div>
+
+      <!-- 리뷰 관리 섹션 추가 -->
+      <div class="section">
+        <h3>리뷰 관리</h3>
+        <div>
+          <h4>리뷰 수정</h4>
+          <input
+            type="number"
+            id="updateReviewId"
+            placeholder="리뷰 ID"
+            min="1"
+          />
+          <textarea
+            id="updateReviewBody"
+            placeholder="수정할 리뷰 내용을 입력하세요"
+            rows="4"
+            style="width: 100%; margin: 10px 0"
+          ></textarea>
+          <div>
+            <label>평점:</label>
+            <select id="updateReviewScore">
+              <option value="1">1점</option>
+              <option value="2">2점</option>
+              <option value="3">3점</option>
+              <option value="4">4점</option>
+              <option value="5">5점</option>
+            </select>
+          </div>
+          <button onclick="updateReview()">리뷰 수정</button>
+        </div>
+
+        <div style="margin-top: 20px">
+          <h4>리뷰 삭제</h4>
+          <input
+            type="number"
+            id="deleteReviewId"
+            placeholder="삭제할 리뷰 ID"
+            min="1"
+          />
+          <button onclick="deleteReview()">리뷰 삭제</button>
+        </div>
+      </div>
+
       <!-- 결과 표시 영역 -->
       <div class="section">
         <h3>실행 결과</h3>
@@ -221,6 +286,185 @@
       // 페이지 로드 시 약관 목록 표시
       if (accessToken) {
         displayTerms();
+      }
+
+      async function submitReview() {
+        const festivalId = parseInt(
+          document.getElementById("festivalId").value
+        );
+        const body = document.getElementById("reviewBody").value;
+        const score = parseInt(document.getElementById("reviewScore").value);
+
+        if (!festivalId || !body || !score) {
+          alert("모든 필드를 입력해주세요.");
+          return;
+        }
+
+        try {
+          const response = await fetch("/graphql", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({
+              query: `
+                mutation {
+                  createReview(
+                    festivalId: ${festivalId}
+                    body: "${body}"
+                    score: ${score}
+                  ) {
+                    success
+                    message
+                    review {
+                      id
+                      body
+                      score
+                    }
+                  }
+                }
+              `,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.data.createReview.success) {
+            alert(data.data.createReview.message);
+            // 입력 필드 초기화
+            document.getElementById("festivalId").value = "";
+            document.getElementById("reviewBody").value = "";
+            document.getElementById("reviewScore").value = "5";
+          } else {
+            alert(data.data.createReview.message);
+          }
+
+          // 결과 표시
+          document.getElementById("result").textContent = JSON.stringify(
+            data,
+            null,
+            2
+          );
+        } catch (error) {
+          alert("리뷰 등록 중 오류가 발생했습니다.");
+          console.error(error);
+        }
+      }
+
+      async function updateReview() {
+        const reviewId = parseInt(
+          document.getElementById("updateReviewId").value
+        );
+        const body = document.getElementById("updateReviewBody").value;
+        const score = parseInt(
+          document.getElementById("updateReviewScore").value
+        );
+
+        if (!reviewId || !body || !score) {
+          alert("모든 필드를 입력해주세요.");
+          return;
+        }
+
+        try {
+          const response = await fetch("/graphql", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({
+              query: `
+                mutation {
+                  updateReview(
+                    reviewId: ${reviewId}
+                    body: "${body}"
+                    score: ${score}
+                  ) {
+                    success
+                    message
+                    review {
+                      id
+                      body
+                      score
+                    }
+                  }
+                }
+              `,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.data.updateReview.success) {
+            alert(data.data.updateReview.message);
+            // 입력 필드 초기화
+            document.getElementById("updateReviewId").value = "";
+            document.getElementById("updateReviewBody").value = "";
+            document.getElementById("updateReviewScore").value = "5";
+          } else {
+            alert(data.data.updateReview.message);
+          }
+
+          document.getElementById("result").textContent = JSON.stringify(
+            data,
+            null,
+            2
+          );
+        } catch (error) {
+          alert("리뷰 수정 중 오류가 발생했습니다.");
+          console.error(error);
+        }
+      }
+
+      async function deleteReview() {
+        const reviewId = parseInt(
+          document.getElementById("deleteReviewId").value
+        );
+
+        if (!reviewId) {
+          alert("리뷰 ID를 입력해주세요.");
+          return;
+        }
+
+        try {
+          const response = await fetch("/graphql", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({
+              query: `
+                mutation {
+                  deleteReview(reviewId: ${reviewId}) {
+                    success
+                    message
+                  }
+                }
+              `,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (data.data.deleteReview.success) {
+            alert(data.data.deleteReview.message);
+            // 입력 필드 초기화
+            document.getElementById("deleteReviewId").value = "";
+          } else {
+            alert(data.data.deleteReview.message);
+          }
+
+          document.getElementById("result").textContent = JSON.stringify(
+            data,
+            null,
+            2
+          );
+        } catch (error) {
+          alert("리뷰 삭제 중 오류가 발생했습니다.");
+          console.error(error);
+        }
       }
     </script>
   </body>
